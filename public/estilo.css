@@ -138,8 +138,9 @@ tr.est.es-alerta td:first-child { box-shadow: inset 4px 0 0 var(--uva); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
 /* ---- Pronóstico, salud de la red y estados nuevos ---- */
-.resumen { grid-template-columns: repeat(4, auto) 1fr; }
-@media (max-width: 899px) { .resumen { grid-template-columns: repeat(2, 1fr); } .lectura { grid-column: 1 / -1; } }
+.resumen { grid-template-columns: repeat(4, auto); justify-content: start; }
+.lectura { grid-column: 1 / -1; max-width: 46rem; }
+@media (max-width: 699px) { .resumen { grid-template-columns: repeat(2, 1fr); } }
 #cifra-vigilancia strong { color: var(--ocre); } #cifra-vigilancia.hay strong { color: var(--uva); }
 #cifra-apagadas strong { color: var(--niebla); } #cifra-apagadas.hay strong { color: var(--tinta); }
 
