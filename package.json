@@ -1,0 +1,18 @@
+{
+  "name": "alertas-coviar",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Alertas agroclimáticas sobre las estaciones COVIAR — caso testigo peronospora (T1, carril A)",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "test": "node --test test/",
+    "ingesta": "node src/ingesta.js",
+    "calibrar": "node src/calibrar.js",
+    "publicar": "node src/publicar.js",
+    "retro": "node src/retro.js",
+    "start": "node src/servidor.js"
+  }
+}

@@ -1,0 +1,56 @@
+name: Actualizar y publicar
+
+# Cada hora trae las lecturas de las estaciones y el pronóstico, recalcula y republica el sitio.
+# No hay servidor ni base de datos: los datos viven en el propio sitio publicado (data/diario/*.json)
+# y cada corrida parte de lo publicado en la anterior.
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+    inputs:
+      completa:
+        description: 'Rebajar todo el histórico desde cero (tarda ~2 min)'
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    env:
+      SITIO: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+      PEGASUS_USUARIO: ${{ secrets.PEGASUS_USUARIO }}
+      PEGASUS_CLAVE: ${{ secrets.PEGASUS_CLAVE }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Tests
+        run: node --test test/
+      - name: Traer lecturas y pronóstico
+        run: node src/ingesta.js --previo "$SITIO" ${{ inputs.completa && '--completa' || '' }}
+      - name: Calibrar pronóstico (solo si la calibración tiene más de 35 días)
+        run: node src/calibrar.js --si-vencida --previo "$SITIO"
+      - name: Armar el sitio
+        run: node src/publicar.js
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: despliegue
+        uses: actions/deploy-pages@v4

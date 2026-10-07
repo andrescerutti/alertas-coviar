@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <title>Alerta peronospora — Red COVIAR</title>
+  <meta name="description" content="Condiciones predisponentes de infección primaria de peronospora sobre las estaciones meteorológicas de COVIAR. Maqueta de la Secretaría de Innovación y Tecnología, UTN FRSR.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+  <header class="mast">
+    <p class="kicker">Secretaría de Innovación y Tecnología · UTN FRSR <span aria-hidden="true">×</span> COVIAR</p>
+    <h1>Peronospora</h1>
+    <p class="bajada">Condiciones predisponentes de infección primaria, calculadas sobre las estaciones de la red.</p>
+    <p class="sello" id="sello" aria-live="polite">Cargando datos…</p>
+  </header>
+
+  <main>
+    <section class="resumen" aria-labelledby="t-resumen">
+      <h2 id="t-resumen" class="solo-lectores">Resumen de hoy</h2>
+      <div class="cifra" id="cifra-alerta"><strong>–</strong><span>en alerta hoy</span></div>
+      <div class="cifra" id="cifra-vigilancia"><strong>–</strong><span>en vigilancia, próximos 7 días</span></div>
+      <div class="cifra" id="cifra-atencion"><strong>–</strong><span>con 2 de 3 condiciones</span></div>
+      <div class="cifra" id="cifra-apagadas"><strong>–</strong><span>estaciones apagadas</span></div>
+      <div class="lectura" id="lectura-piloto"></div>
+    </section>
+
+    <section class="regla" aria-labelledby="t-regla">
+      <h2 id="t-regla">La regla</h2>
+      <p class="regla-txt">Hay alerta cuando se cumplen <em>a la vez</em>, durante <strong>3 días seguidos</strong>:</p>
+      <form id="form-regla" class="umbrales" autocomplete="off">
+        <label><span>Temperatura mínima de cada día ≥</span><input name="tminC" type="number" step="0.5" min="-10" max="30" inputmode="decimal"><b>°C</b></label>
+        <label><span>Lluvia acumulada en los 3 días ≥</span><input name="lluviaMm" type="number" step="1" min="0" max="200" inputmode="decimal"><b>mm</b></label>
+        <label><span>Humedad relativa de cada día ≥</span><input name="hrPct" type="number" step="1" min="0" max="100" inputmode="decimal"><b>%</b></label>
+        <label><span>La humedad del día es su</span>
+          <select name="hrModo"><option value="media">media</option><option value="minima">mínima</option></select></label>
+        <button type="button" id="reset">Valores de referencia</button>
+      </form>
+      <p class="nota" id="nota-regla"></p>
+    </section>
+
+    <section class="pronostico" aria-labelledby="t-pron">
+      <h2 id="t-pron">Lo que viene</h2>
+      <p class="sub" id="pron-sub"></p>
+      <div class="tira-wrap"><table id="tira-pron" class="tira"></table></div>
+      <p class="nota-pie" id="pron-nota"></p>
+    </section>
+
+    <div class="cuerpo">
+      <section class="mapa-col" aria-labelledby="t-mapa">
+        <h2 id="t-mapa">Dónde están</h2>
+        <div id="mapa" class="mapa" role="img" aria-label="Mapa esquemático de las estaciones coloreadas por estado"></div>
+        <ul class="leyenda" aria-label="Referencias">
+          <li><i class="pip alerta"></i>Alerta</li>
+          <li><i class="pip atencion"></i>2 de 3</li>
+          <li><i class="pip libre"></i>0 o 1 de 3</li>
+          <li><i class="pip sin"></i>Apagada</li>
+          <li><i class="aro-leyenda probable"></i>Vigilancia probable</li>
+          <li><i class="aro-leyenda posible"></i>Vigilancia posible</li>
+        </ul>
+      </section>
+
+      <section class="tabla-col" aria-labelledby="t-tabla">
+        <h2 id="t-tabla">Estaciones <small id="ref-dia"></small></h2>
+        <div class="tabla-wrap"><table id="tabla">
+          <thead><tr><th scope="col">Estación</th><th scope="col" class="num">Tmín</th><th scope="col" class="num">Lluvia</th><th scope="col" class="num">HR</th><th scope="col">Hoy</th><th scope="col">Pronóstico</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </section>
+    </div>
+
+    <section class="red" aria-labelledby="t-red">
+      <h2 id="t-red">Estado de la red</h2>
+      <p class="sub" id="red-sub"></p>
+      <div class="tabla-wrap"><table id="tabla-red">
+        <thead><tr><th scope="col">Estación</th><th scope="col">Estado</th><th scope="col">Última lectura</th><th scope="col" class="num">Lecturas 7 d</th><th scope="col" class="num">Batería</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </section>
+
+    <section id="detalle" class="detalle" aria-labelledby="t-detalle" hidden>
+      <h2 id="t-detalle">–</h2>
+      <p class="sub" id="det-sub"></p>
+      <div id="graficos" class="graficos"></div>
+      <ul class="leyenda leyenda-modelos" id="leyenda-modelos" aria-label="Modelos de pronóstico"></ul>
+      <div id="tabla-pron-det" class="tabla-wrap"></div>
+      <div id="episodios" class="episodios"></div>
+    </section>
+
+    <section class="retro" aria-labelledby="t-retro">
+      <h2 id="t-retro">Retro-testeo: qué habría avisado la regla</h2>
+      <p class="sub" id="retro-sub">Calculando…</p>
+      <div id="timeline" class="timeline" role="img" aria-label="Días con alerta por zona desde 2023"></div>
+    </section>
+  </main>
+
+  <footer class="pie">
+    <h2>Cómo leer esto</h2>
+    <ul>
+      <li><strong>Es un motor de reglas, no un modelo de IA.</strong> Aplica los umbrales agronómicos que definió COVIAR sobre las lecturas de cada estación. Es determinista y se puede auditar día por día.</li>
+      <li><strong>Alerta</strong> es lo que ya pasó: las tres condiciones se cumplieron en los últimos 3 días completos, según lo que midió la estación. El día en curso no cuenta hasta cerrar.</li>
+      <li><strong>Vigilancia</strong> es lo que podría pasar: se corre la misma regla sobre los próximos 7 días con el pronóstico de tres modelos (ECMWF, ICON y GFS, vía Open-Meteo). <em>Probable</em> = al menos dos modelos coinciden; <em>posible</em> = solo uno. Nunca se llama «alerta».</li>
+      <li><strong>El pronóstico se calibra con las propias estaciones.</strong> Sin corregir, los modelos pronostican entre 3 y 5 °C de más en las mínimas y, en el caso de GFS, 13 puntos de menos en humedad. A cada modelo se le resta el sesgo que tuvo en cada estación durante el último año.</li>
+      <li><strong>Es un aviso temprano, no una certeza.</strong> En la validación sobre un año, la regla pronosticada a un día acertó cerca de 4 de cada 10 eventos y dio varias falsas alarmas; a 5 días casi no acierta. La lluvia es lo más difícil de pronosticar.</li>
+      <li>Un día vale si tiene al menos el <strong>75 %</strong> de las lecturas (una cada 15 min). Si no, la ventana queda «sin datos» y nunca se declara alerta.</li>
+      <li>Los umbrales de arriba se pueden mover para ver qué habría pasado y calibrar con el equipo agronómico. No cambian nada guardado.</li>
+      <li>Maqueta de consulta: no envía avisos a nadie. El canal de salida está pendiente de decisión.</li>
+    </ul>
+  </footer>
+  <script src="app.js" type="module"></script>
+</body>
+</html>
