@@ -72,3 +72,16 @@ test('resumenBateria saca mínimo, máximo y último valor del día', async () =
   ]);
   assert.deepEqual(r, { '2026-10-05': { min: 6.2, max: 6.9, ult: 6.6 } });
 });
+
+test('versionar agrega ?v= a la hoja de estilos, al script y a los imports, sin duplicarlo', async () => {
+  const { mkdtempSync, writeFileSync, readFileSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const { versionar } = await import('../src/publicar.js');
+  const dir = mkdtempSync(join(tmpdir(), 'dist-'));
+  writeFileSync(join(dir, 'index.html'), '<link rel="stylesheet" href="estilo.css"><script src="app.js" type="module"></script>');
+  writeFileSync(join(dir, 'app.js'), "import { h } from './lib.js';\nimport { x } from './motor.js';\nfetch('data/red.json');");
+  versionar(dir, '202610070200');
+  assert.equal(readFileSync(join(dir, 'index.html'), 'utf8'), '<link rel="stylesheet" href="estilo.css?v=202610070200"><script src="app.js?v=202610070200" type="module"></script>');
+  assert.equal(readFileSync(join(dir, 'app.js'), 'utf8'), "import { h } from './lib.js?v=202610070200';\nimport { x } from './motor.js?v=202610070200';\nfetch('data/red.json');");
+});
