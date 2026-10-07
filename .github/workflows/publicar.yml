@@ -41,7 +41,7 @@ jobs:
         with:
           node-version: 24
       - name: Tests
-        run: node --test test/
+        run: node --test
       - name: Traer lecturas y pronóstico
         run: node src/ingesta.js --previo "$SITIO" ${{ inputs.completa && '--completa' || '' }}
       - name: Calibrar pronóstico (solo si la calibración tiene más de 35 días)
