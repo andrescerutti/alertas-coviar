@@ -3,12 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://server.arcgisonline.com; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
   <title>Alerta peronospora — Red COVIAR</title>
   <meta name="description" content="Condiciones predisponentes de infección primaria de peronospora sobre las estaciones meteorológicas de COVIAR. Maqueta de la Secretaría de Innovación y Tecnología, UTN FRSR.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
   <link rel="stylesheet" href="estilo.css">
 </head>
 <body>
@@ -53,7 +54,11 @@
     <div class="cuerpo">
       <section class="mapa-col" aria-labelledby="t-mapa">
         <h2 id="t-mapa">Dónde están</h2>
-        <div id="mapa" class="mapa" role="img" aria-label="Mapa esquemático de las estaciones coloreadas por estado"></div>
+        <div class="mapa-botones" role="group" aria-label="Encuadre del mapa">
+          <button type="button" data-zona="todas">Ver todas</button>
+          <button type="button" data-zona="Sur">Zona piloto (Sur)</button>
+        </div>
+        <div id="mapa" class="mapa" aria-label="Mapa con la ubicación de las estaciones, coloreadas por estado. La tabla de al lado tiene la misma información en texto."></div>
         <ul class="leyenda" aria-label="Referencias">
           <li><i class="pip alerta"></i>Alerta</li>
           <li><i class="pip atencion"></i>2 de 3</li>
@@ -111,6 +116,7 @@
       <li>Maqueta de consulta: no envía avisos a nadie. El canal de salida está pendiente de decisión.</li>
     </ul>
   </footer>
+  <script src="vendor/leaflet/leaflet.js"></script>
   <script src="app.js" type="module"></script>
 </body>
 </html>

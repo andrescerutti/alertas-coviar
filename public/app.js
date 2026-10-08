@@ -1,7 +1,7 @@
 // Portal de consulta. Todo se calcula en el navegador a partir de data/*.json.
 import { $, h, poner, fmtFecha, fmtFechaLarga, fmtTs, diaSemana, num, hace, por } from './lib.js';
 import { REF, cargarRed, evaluarRed, detalleEstacion, historialRed } from './datos.js';
-import { graficoSerie, mapa, lineaTiempo } from './graficos.js';
+import { graficoSerie, crearMapa, lineaTiempo } from './graficos.js';
 
 const ZONAS_ORDEN = ['Sur', 'San Juan', 'Este', 'Valle de Uco', 'Centro', 'La Rioja'];
 const HORAS_SITIO_VIEJO = 3;
@@ -117,8 +117,13 @@ function renderTabla() {
   $('#tabla tbody').replaceChildren(...filas);
 }
 
+let mapaVivo = null;
 function renderMapa() {
-  $('#mapa').replaceChildren(mapa(estado.ests.filter((e) => e.red === 'coviar'), { seleccionada: estado.seleccion, alSeleccionar: seleccionar, textoDe: textoEstacion }));
+  if (!mapaVivo) {
+    try { mapaVivo = crearMapa($('#mapa')); } catch (err) { console.error(err); $('#mapa').textContent = 'No se pudo cargar el mapa.'; return; }
+    for (const b of document.querySelectorAll('.mapa-botones button')) b.addEventListener('click', () => mapaVivo.enfocar(b.dataset.zona));
+  }
+  mapaVivo.actualizar(estado.ests, { seleccionada: estado.seleccion, alSeleccionar: seleccionar, textoDe: textoEstacion });
 }
 
 // ---------- Estado de la red ----------

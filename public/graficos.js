@@ -49,37 +49,53 @@ function trazos(serie, xi, yv) {
   return salida;
 }
 
-// ---- Mapa esquemático (proyección plana: sirve para ubicarse, no para medir) ----
-export function mapa(estaciones, { seleccionada, alSeleccionar, textoDe }) {
-  const W = 340, H = 520, pad = 30;
-  const ests = estaciones.filter((e) => e.lat != null);
-  const lats = ests.map((e) => e.lat), lngs = ests.map((e) => e.lng);
-  const [latMin, latMax] = [Math.min(...lats) - 0.15, Math.max(...lats) + 0.15];
-  const [lngMin, lngMax] = [Math.min(...lngs) - 0.15, Math.max(...lngs) + 0.15];
-  const k = Math.cos((((latMin + latMax) / 2) * Math.PI) / 180);
-  const escala = Math.min((W - 2 * pad) / ((lngMax - lngMin) * k), (H - 2 * pad) / (latMax - latMin));
-  const x = (lng) => pad + (lng - lngMin) * k * escala;
-  const y = (lat) => pad + (latMax - lat) * escala;
+// ---- Mapa real (Leaflet, incluido en vendor/) ----
+const COLOR_ESTADO = { alerta: '#8e1b3a', atencion: '#c0801a', libre: '#5b7a49', apagada: '#9a9183' };
+const COLOR_VIGILANCIA = { posible: '#c0801a', probable: '#8e1b3a' };
+const TINTA = '#1f1a16';
 
-  const svg = s('svg', { viewBox: `0 0 ${W} ${H}` });
-  for (let g = Math.ceil(latMin); g <= latMax; g++) svg.append(s('line', { class: 'grat', x1: 0, x2: W, y1: y(g), y2: y(g) }), s('text', { class: 'grat-txt', x: 6, y: y(g) - 3 }, `${Math.abs(g)}° S`));
-  const porZona = {};
-  for (const e of ests) (porZona[e.zona] ??= []).push(e);
-  for (const [zona, lista] of Object.entries(porZona)) {
-    const cx = lista.reduce((a, e) => a + x(e.lng), 0) / lista.length;
-    svg.append(s('text', { class: 'zona-txt', x: cx, y: Math.min(...lista.map((e) => y(e.lat))) - 14, 'text-anchor': 'middle' }, zona));
-  }
-  for (const est of ests) {
-    const vig = est.apagada ? 'ninguna' : est.vigilancia.primera?.nivel ?? 'ninguna';
-    const cx = x(est.lng), cy = y(est.lat);
-    if (est.zona === 'Sur') svg.append(s('circle', { class: 'aro', cx, cy, r: 12 }));
-    if (vig !== 'ninguna') svg.append(s('circle', { class: `aro-vig ${vig}`, cx, cy, r: 9.5 }));
-    const c = s('circle', { class: `${est.clave} ${seleccionada === est.id ? 'sel' : ''}`, cx, cy, r: 6, tabindex: 0, role: 'button', 'aria-label': textoDe(est) }, s('title', {}, textoDe(est)));
-    c.addEventListener('click', () => alSeleccionar(est.id));
-    c.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); alSeleccionar(est.id); } });
-    svg.append(c);
-  }
-  return svg;
+export function crearMapa(contenedor) {
+  const L = window.L;
+  if (!L) throw new Error('Leaflet no cargó');
+  const mapa = L.map(contenedor, { zoomControl: true, scrollWheelZoom: false, attributionControl: true });
+  const calle = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' });
+  const satelite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, attribution: 'Imágenes © Esri, Maxar, Earthstar Geographics' });
+  calle.addTo(mapa);
+  L.control.layers({ Calle: calle, Satélite: satelite }, null, { position: 'topright' }).addTo(mapa);
+  L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(mapa);
+  const capa = L.layerGroup().addTo(mapa);
+  let ajustado = false;
+  let ultimas = [];
+
+  const encuadrar = (lista) => {
+    const puntos = lista.filter((e) => e.lat != null).map((e) => [e.lat, e.lng]);
+    if (puntos.length) mapa.fitBounds(puntos, { padding: [28, 28], maxZoom: 12 });
+  };
+
+  return {
+    // opciones: { seleccionada, alSeleccionar, textoDe }
+    actualizar(estaciones, { seleccionada, alSeleccionar, textoDe }) {
+      ultimas = estaciones;
+      capa.clearLayers();
+      for (const est of estaciones.filter((e) => e.lat != null)) {
+        const pos = [est.lat, est.lng];
+        const vig = est.apagada ? 'ninguna' : est.vigilancia.primera?.nivel ?? 'ninguna';
+        if (est.zona === 'Sur') capa.addLayer(L.circleMarker(pos, { radius: 15, color: TINTA, weight: 1, dashArray: '2 4', fill: false, interactive: false }));
+        if (vig !== 'ninguna') capa.addLayer(L.circleMarker(pos, { radius: 11, color: COLOR_VIGILANCIA[vig], weight: 3, fill: false, interactive: false }));
+        const sel = seleccionada === est.id;
+        const marcador = L.circleMarker(pos, { radius: sel ? 9 : 7, color: sel ? TINTA : '#f4eee2', weight: sel ? 3 : 2, fillColor: COLOR_ESTADO[est.clave] ?? COLOR_ESTADO.libre, fillOpacity: est.red === 'otras' ? 0.55 : 1 });
+        marcador.bindTooltip(textoDe(est), { direction: 'top', offset: [0, -6] });
+        marcador.on('click', () => alSeleccionar(est.id));
+        capa.addLayer(marcador);
+      }
+      if (!ajustado) { ajustado = true; encuadrar(estaciones); }
+    },
+    // 'todas' o el nombre de una zona
+    enfocar(zona) {
+      encuadrar(zona === 'todas' ? ultimas : ultimas.filter((e) => e.zona === zona));
+    },
+    refrescarTamano() { mapa.invalidateSize(); },
+  };
 }
 
 // ---- Línea de tiempo del retro-testeo ----

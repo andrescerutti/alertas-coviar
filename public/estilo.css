@@ -72,14 +72,6 @@ h1 { font-size: var(--paso-titulo); line-height: 0.88; font-variation-settings: 
 /* Mapa + tabla */
 .cuerpo { display: grid; gap: 2rem 3rem; padding: 2rem 0; grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 960px) { .cuerpo { grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); } }
-.mapa svg { width: 100%; height: auto; display: block; background: var(--papel-2); }
-.mapa .grat { stroke: var(--linea); stroke-width: 1; }
-.mapa .grat-txt, .mapa .zona-txt { font: 400 9px var(--f-dato); fill: var(--tinta-suave); }
-.mapa .zona-txt { font-style: italic; font-family: var(--f-display); font-size: 11px; }
-.mapa circle { cursor: pointer; stroke: var(--papel); stroke-width: 2; transition: transform var(--rapido) var(--salida); transform-box: fill-box; transform-origin: center; }
-.mapa circle:hover, .mapa circle.sel { transform: scale(1.5); }
-.mapa circle.sel { stroke: var(--tinta); }
-.mapa .aro { fill: none; stroke: var(--tinta); stroke-width: 1; stroke-dasharray: 2 3; pointer-events: none; }
 .leyenda { list-style: none; padding: 0; margin: 0.8rem 0 0; display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; font: 400 0.75rem var(--f-dato); }
 .pip { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 50%; margin-right: 0.4rem; vertical-align: -1px; }
 .alerta { background: var(--uva); fill: var(--uva); } .atencion { background: var(--ocre); fill: var(--ocre); }
@@ -156,11 +148,8 @@ tr.est.es-alerta td:first-child { box-shadow: inset 4px 0 0 var(--uva); }
 .tira td.probable { background: var(--uva); color: var(--papel); font-weight: 500; }
 .nota-pie { font: 400 0.75rem var(--f-dato); color: var(--tinta-suave); margin: 0.8rem 0 0; max-width: 46rem; }
 
-.mapa .aro-vig { fill: none; stroke-width: 2.5; pointer-events: none; }
-.mapa .aro-vig.posible { stroke: var(--ocre); } .mapa .aro-vig.probable { stroke: var(--uva); }
 .aro-leyenda { display: inline-block; width: 0.8rem; height: 0.8rem; border-radius: 50%; border: 2.5px solid; margin-right: 0.4rem; vertical-align: -2px; }
 .aro-leyenda.posible { border-color: var(--ocre); } .aro-leyenda.probable { border-color: var(--uva); }
-.mapa circle.apagada { fill: var(--niebla); }
 
 td.pron { font: 400 0.78rem var(--f-dato); }
 td.pron.probable { color: var(--uva); font-weight: 500; } td.pron.posible { color: var(--ocre); } td.pron.ninguna { color: var(--niebla); }
@@ -197,3 +186,16 @@ button.plano, tr.est td:first-child button { all: unset; cursor: pointer; }
 
 #tabla-red small.diag { display: block; font: 400 0.72rem var(--f-dato); color: var(--tinta-suave); margin-top: 0.15rem; white-space: normal; max-width: 22rem; }
 #tabla-red tr.apagada small.diag { color: var(--uva); }
+
+/* ---- Mapa real ---- */
+.cuerpo { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 1000px) { .cuerpo { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); } .mapa-col { position: sticky; top: 1rem; align-self: start; } }
+.mapa { height: clamp(360px, 62vh, 620px); background: var(--papel-2); border: 1px solid var(--linea); }
+.mapa .leaflet-container { font-family: var(--f-dato); }
+.leaflet-container { font: 400 0.75rem var(--f-dato); background: var(--papel-2); }
+.leaflet-tooltip { font: 500 0.75rem var(--f-dato); color: var(--tinta); background: var(--papel); border: 1px solid var(--tinta); border-radius: 0; box-shadow: none; }
+.leaflet-tooltip-top::before { border-top-color: var(--tinta); }
+.leaflet-control-layers, .leaflet-bar a { border-radius: 0 !important; }
+.mapa-botones { display: flex; gap: 0.5rem; margin: 0 0 0.6rem; flex-wrap: wrap; }
+.mapa-botones button { font: 500 0.75rem var(--f-dato); padding: 0.35rem 0.7rem; background: transparent; color: var(--tinta); border: 1.5px solid var(--tinta); cursor: pointer; transition: background var(--rapido), color var(--rapido); }
+.mapa-botones button:hover { background: var(--tinta); color: var(--papel); }
